@@ -1,0 +1,36 @@
+workflows:
+  ios-altstore-unsigned:
+    name: iOS AltStore unsigned IPA
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Prepare Flutter iOS runner
+        script: |
+          cd mobile/vnu_course_mobile
+          flutter create --platforms=ios .
+          flutter pub get
+      - name: Analyze and test Flutter project
+        script: |
+          cd mobile/vnu_course_mobile
+          flutter analyze
+          flutter test
+      - name: Build unsigned iOS app
+        script: |
+          cd mobile/vnu_course_mobile
+          flutter build ios --release --no-codesign
+      - name: Package unsigned IPA for AltStore
+        script: |
+          cd mobile/vnu_course_mobile
+          rm -rf build/ios/ipa
+          mkdir -p build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/Runner.app
+          cd build/ios/ipa
+          zip -qry vnu_course_mobile_unsigned.ipa Payload
+    artifacts:
+      - mobile/vnu_course_mobile/build/ios/ipa/*.ipa
+      - mobile/vnu_course_mobile/build/ios/iphoneos/Runner.app
+      - /tmp/xcodebuild_logs/*.log

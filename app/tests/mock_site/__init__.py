@@ -1,0 +1,1 @@
+"""Local mock university website."""
