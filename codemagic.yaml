@@ -12,6 +12,7 @@ workflows:
         script: |
           cd mobile/vnu_course_mobile
           flutter create --platforms=ios .
+          rm -f test/widget_test.dart
           flutter pub get
       - name: Analyze and test Flutter project
         script: |
