@@ -3,9 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/account_settings.dart';
 
 class SecureStorageService {
-  SecureStorageService({
-    FlutterSecureStorage? storage,
-  }) : _storage = storage ?? FlutterSecureStorage();
+  SecureStorageService({FlutterSecureStorage? storage})
+    : _storage = storage ?? FlutterSecureStorage();
 
   static const String _usernameKey = 'account.username';
   static const String _passwordKey = 'account.password';
@@ -20,8 +19,9 @@ class SecureStorageService {
     final rememberPassword =
         await _storage.read(key: _rememberPasswordKey) == 'true';
     return AccountSettings(
-      username:
-          rememberUsername ? (await _storage.read(key: _usernameKey)) ?? '' : '',
+      username: rememberUsername
+          ? (await _storage.read(key: _usernameKey)) ?? ''
+          : '',
       rememberUsername: rememberUsername,
       rememberPassword: rememberPassword,
     );

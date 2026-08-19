@@ -30,19 +30,19 @@ class CourseTarget {
   List<String> validate() {
     final errors = <String>[];
     if (courseCode.trim().isEmpty) {
-      errors.add('Course code is required');
+      errors.add('Cần nhập mã môn học');
     }
     if (!_validToken(courseCode)) {
-      errors.add('Malformed course code: $courseCode');
+      errors.add('Mã môn học không hợp lệ: $courseCode');
     }
     if (classCode != null && !_validToken(classCode!)) {
-      errors.add('Malformed class code: $classCode');
+      errors.add('Mã lớp không hợp lệ: $classCode');
     }
     if (groupCode != null && !_validToken(groupCode!)) {
-      errors.add('Malformed group code: $groupCode');
+      errors.add('Mã nhóm không hợp lệ: $groupCode');
     }
     if (priority < 1) {
-      errors.add('Priority must be 1 or greater');
+      errors.add('Độ ưu tiên phải từ 1 trở lên');
     }
     return errors;
   }

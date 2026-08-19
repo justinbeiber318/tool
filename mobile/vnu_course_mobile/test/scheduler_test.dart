@@ -27,9 +27,6 @@ void main() {
       monotonicElapsed: const Duration(seconds: 1),
     );
 
-    expect(
-      clockJumpDetected(previous: previous, current: current),
-      isTrue,
-    );
+    expect(clockJumpDetected(previous: previous, current: current), isTrue);
   });
 }

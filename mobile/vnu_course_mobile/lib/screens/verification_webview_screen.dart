@@ -1,13 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../browser/persistent_webview_controller.dart';
 import '../utils/app_log.dart';
 
-class VerificationWebViewScreen extends StatelessWidget {
+class VerificationWebViewScreen extends StatefulWidget {
   const VerificationWebViewScreen({required this.webView, super.key});
 
   final PersistentWebViewController webView;
+
+  @override
+  State<VerificationWebViewScreen> createState() =>
+      _VerificationWebViewScreenState();
+}
+
+class _VerificationWebViewScreenState extends State<VerificationWebViewScreen> {
+  PersistentWebViewController get webView => widget.webView;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations(const <DeviceOrientation>[
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +55,7 @@ class VerificationWebViewScreen extends StatelessWidget {
             ),
           ),
           leading: IconButton(
-            tooltip: 'Back',
+            tooltip: 'Quay lại',
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
               await webView.goBackOrClose(() => Navigator.of(context).pop());
@@ -39,17 +63,17 @@ class VerificationWebViewScreen extends StatelessWidget {
           ),
           actions: <Widget>[
             IconButton(
-              tooltip: 'Reload',
+              tooltip: 'Tải lại',
               icon: const Icon(Icons.refresh),
               onPressed: webView.reload,
             ),
             IconButton(
-              tooltip: 'Close',
+              tooltip: 'Đóng',
               icon: const Icon(Icons.close),
               onPressed: () {
                 webView.addLog(
                   LogLevel.info,
-                  'Fullscreen WebView closed by user; session retained.',
+                  'Đã đóng trình duyệt toàn màn hình; phiên đăng nhập được giữ.',
                 );
                 Navigator.of(context).pop();
               },

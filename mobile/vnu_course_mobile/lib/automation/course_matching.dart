@@ -1,16 +1,9 @@
 import '../models/course.dart';
 
-enum CourseMatchStatus {
-  matched,
-  notFound,
-  ambiguous,
-}
+enum CourseMatchStatus { matched, notFound, ambiguous }
 
 class CourseMatchResult {
-  const CourseMatchResult({
-    required this.status,
-    this.course,
-  });
+  const CourseMatchResult({required this.status, this.course});
 
   final CourseMatchStatus status;
   final Course? course;
@@ -44,8 +37,8 @@ List<Course> _matchingCourses(List<Course> courses, CourseTarget target) {
   final exactClass = targetClass.isEmpty
       ? <Course>[]
       : courses
-          .where((course) => _norm(course.classCode) == targetClass)
-          .toList(growable: false);
+            .where((course) => _norm(course.classCode) == targetClass)
+            .toList(growable: false);
   if (exactClass.isNotEmpty) {
     return exactClass;
   }
@@ -53,12 +46,12 @@ List<Course> _matchingCourses(List<Course> courses, CourseTarget target) {
   final exactGroup = targetGroup.isEmpty
       ? <Course>[]
       : courses
-          .where(
-            (course) =>
-                _norm(course.courseCode) == targetCourse &&
-                _norm(course.groupCode) == targetGroup,
-          )
-          .toList(growable: false);
+            .where(
+              (course) =>
+                  _norm(course.courseCode) == targetCourse &&
+                  _norm(course.groupCode) == targetGroup,
+            )
+            .toList(growable: false);
   if (exactGroup.isNotEmpty) {
     return exactGroup;
   }

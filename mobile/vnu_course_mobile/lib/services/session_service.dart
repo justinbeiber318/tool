@@ -5,14 +5,13 @@ import 'package:flutter/foundation.dart';
 import '../models/session_info.dart';
 
 class SessionService {
-  SessionService({
-    this.sessionTtl = const Duration(minutes: 20),
-  });
+  SessionService({this.sessionTtl = const Duration(minutes: 20)});
 
   final Duration sessionTtl;
   final ValueNotifier<SessionInfo?> session = ValueNotifier<SessionInfo?>(null);
-  final ValueNotifier<Duration> remaining =
-      ValueNotifier<Duration>(Duration.zero);
+  final ValueNotifier<Duration> remaining = ValueNotifier<Duration>(
+    Duration.zero,
+  );
 
   Timer? _timer;
 

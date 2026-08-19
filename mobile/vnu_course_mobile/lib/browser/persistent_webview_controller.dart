@@ -24,7 +24,7 @@ class PersistentWebViewController {
   final Uri loginUrl;
   final String allowedHost;
 
-  final ValueNotifier<String> currentUrl = ValueNotifier<String>('not loaded');
+  final ValueNotifier<String> currentUrl = ValueNotifier<String>('chưa tải');
   final ValueNotifier<int> progress = ValueNotifier<int>(0);
   final ValueNotifier<bool> isLoading = ValueNotifier<bool>(false);
   final ValueNotifier<List<AppLogEntry>> logs =
@@ -36,14 +36,14 @@ class PersistentWebViewController {
   WebViewController get controller {
     final active = _controller;
     if (active == null) {
-      throw StateError('WebView has not been initialized.');
+      throw StateError('Trình duyệt chưa được khởi tạo.');
     }
     return active;
   }
 
   Future<void> openLoginTest() async {
     await initialize();
-    addLog(LogLevel.info, 'Opening login test: ${loginUrl.host}');
+    addLog(LogLevel.info, 'Đang mở trang đăng nhập: ${loginUrl.host}');
     await controller.loadRequest(loginUrl);
   }
 
@@ -62,8 +62,9 @@ class PersistentWebViewController {
       params = const PlatformWebViewControllerCreationParams();
     }
 
-    final webViewController =
-        WebViewController.fromPlatformCreationParams(params);
+    final webViewController = WebViewController.fromPlatformCreationParams(
+      params,
+    );
     _controller = webViewController;
 
     await webViewController.setJavaScriptMode(JavaScriptMode.unrestricted);
@@ -78,13 +79,13 @@ class PersistentWebViewController {
         onPageStarted: (url) {
           isLoading.value = true;
           _setCurrentUrl(url);
-          addLog(LogLevel.info, 'Started ${Sanitizer.sanitizeUrl(url)}');
+          addLog(LogLevel.info, 'Bắt đầu tải ${Sanitizer.sanitizeUrl(url)}');
         },
         onPageFinished: (url) {
           isLoading.value = false;
           progress.value = 100;
           _setCurrentUrl(url);
-          addLog(LogLevel.info, 'Finished ${Sanitizer.sanitizeUrl(url)}');
+          addLog(LogLevel.info, 'Tải xong ${Sanitizer.sanitizeUrl(url)}');
         },
         onUrlChange: (change) {
           final url = change.url;
@@ -95,14 +96,14 @@ class PersistentWebViewController {
         onWebResourceError: (error) {
           addLog(
             LogLevel.warning,
-            'Web resource error ${error.errorCode}: ${error.description}',
+            'Lỗi tài nguyên web ${error.errorCode}: ${error.description}',
           );
         },
         onNavigationRequest: (request) {
           if (!DesktopMode.isAllowedTopLevelUrl(request.url)) {
             addLog(
               LogLevel.warning,
-              'Off-domain navigation observed: ${Sanitizer.sanitizeUrl(request.url)}',
+              'Phát hiện điều hướng ngoài miền: ${Sanitizer.sanitizeUrl(request.url)}',
             );
           }
           return NavigationDecision.navigate;
@@ -119,24 +120,24 @@ class PersistentWebViewController {
     _initialized = true;
     addLog(
       LogLevel.info,
-      'WebView initialized with JavaScript, desktop mode, and persistent cookies.',
+      'Đã khởi tạo trình duyệt với JavaScript, chế độ desktop và cookie giữ phiên.',
     );
   }
 
   Future<void> reload() async {
     await initialize();
-    addLog(LogLevel.info, 'Reload requested');
+    addLog(LogLevel.info, 'Đã yêu cầu tải lại');
     await controller.reload();
   }
 
   Future<void> goBackOrClose(VoidCallback close) async {
     await initialize();
     if (await controller.canGoBack()) {
-      addLog(LogLevel.info, 'Navigating back inside WebView');
+      addLog(LogLevel.info, 'Quay lại trong trình duyệt');
       await controller.goBack();
       return;
     }
-    addLog(LogLevel.info, 'Closing fullscreen WebView; controller retained');
+    addLog(LogLevel.info, 'Đóng trình duyệt toàn màn hình; vẫn giữ phiên');
     close();
   }
 
@@ -144,11 +145,7 @@ class PersistentWebViewController {
     final next = List<AppLogEntry>.of(logs.value)
       ..insert(
         0,
-        AppLogEntry(
-          timestamp: DateTime.now(),
-          level: level,
-          message: message,
-        ),
+        AppLogEntry(timestamp: DateTime.now(), level: level, message: message),
       );
     logs.value = next.take(200).toList(growable: false);
   }
@@ -160,13 +157,13 @@ class PersistentWebViewController {
       await platform.setUseWideViewPort(true);
       await platform.setTextZoom(100);
       await platform.setMediaPlaybackRequiresUserGesture(false);
-      addLog(LogLevel.debug, 'Android WebView wide viewport enabled.');
+      addLog(LogLevel.debug, 'Đã bật viewport rộng cho Android WebView.');
     }
     if (platform is WebKitWebViewController) {
       await platform.setAllowsBackForwardNavigationGestures(true);
       await platform.setAllowsLinkPreview(false);
       await platform.setInspectable(false);
-      addLog(LogLevel.debug, 'WKWebView desktop user agent configured.');
+      addLog(LogLevel.debug, 'Đã cấu hình user agent desktop cho WKWebView.');
     }
   }
 

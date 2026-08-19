@@ -19,8 +19,9 @@ class Sanitizer {
 
     final sanitizedQuery = <String, String>{};
     for (final entry in uri.queryParameters.entries) {
-      sanitizedQuery[entry.key] =
-          _sensitiveField.hasMatch(entry.key) ? '[redacted]' : entry.value;
+      sanitizedQuery[entry.key] = _sensitiveField.hasMatch(entry.key)
+          ? '[redacted]'
+          : entry.value;
     }
     return uri.replace(queryParameters: sanitizedQuery).toString();
   }

@@ -18,9 +18,7 @@ class VnuLoginStatus {
 }
 
 class VnuLoginAdapter {
-  VnuLoginAdapter({
-    this.selectors = const VnuLoginSelectors(),
-  });
+  VnuLoginAdapter({this.selectors = const VnuLoginSelectors()});
 
   final VnuLoginSelectors selectors;
 
@@ -30,8 +28,7 @@ class VnuLoginAdapter {
     required String password,
   }) async {
     await _assertAllowedHost(controller);
-    final result = await controller.runJavaScriptReturningResult(
-      '''
+    final result = await controller.runJavaScriptReturningResult('''
 (() => {
   const first = (selectors) => {
     for (const selector of selectors) {
@@ -62,17 +59,15 @@ class VnuLoginAdapter {
   setNativeValue(password, ${jsonEncode(password)});
   return true;
 })();
-''',
-    );
+''');
     if (result != true && result.toString() != 'true') {
-      throw StateError('Login form fields were not found.');
+      throw StateError('Không tìm thấy ô đăng nhập.');
     }
   }
 
   Future<VnuLoginStatus> probeStatus(WebViewController controller) async {
     await _assertAllowedHost(controller);
-    final result = await controller.runJavaScriptReturningResult(
-      '''
+    final result = await controller.runJavaScriptReturningResult('''
 (() => {
   const any = (selectors) => selectors.some(
     (selector) => document.querySelector(selector) !== null
@@ -102,15 +97,14 @@ class VnuLoginAdapter {
     loginErrorText: text(${jsonEncode(selectors.loginErrors)})
   });
 })();
-''',
-    );
+''');
     return _parseStatus(result);
   }
 
   Future<void> _assertAllowedHost(WebViewController controller) async {
     final url = await controller.currentUrl();
     if (url == null || !DesktopMode.isAllowedTopLevelUrl(url)) {
-      throw StateError('Automation paused: current host is not allowed.');
+      throw StateError('Tự động hóa tạm dừng: trang hiện tại không hợp lệ.');
     }
   }
 

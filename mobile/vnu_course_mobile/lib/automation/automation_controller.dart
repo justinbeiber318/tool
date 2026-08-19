@@ -5,6 +5,7 @@ import '../browser/persistent_webview_controller.dart';
 import '../models/automation_state.dart';
 import '../services/session_service.dart';
 import '../site/vnu_login_adapter.dart';
+import '../site/vnu_registration_adapter.dart';
 import '../utils/app_log.dart';
 import '../utils/sanitizer.dart';
 
@@ -12,22 +13,26 @@ class AutomationController {
   AutomationController({
     required this.webView,
     VnuLoginAdapter? loginAdapter,
+    VnuRegistrationAdapter? registrationAdapter,
     SessionService? sessionService,
-  })  : loginAdapter = loginAdapter ?? VnuLoginAdapter(),
-        sessionService = sessionService ?? SessionService();
+  }) : loginAdapter = loginAdapter ?? VnuLoginAdapter(),
+       registrationAdapter = registrationAdapter ?? VnuRegistrationAdapter(),
+       sessionService = sessionService ?? SessionService();
 
   final PersistentWebViewController webView;
   final VnuLoginAdapter loginAdapter;
+  final VnuRegistrationAdapter registrationAdapter;
   final SessionService sessionService;
 
-  final ValueNotifier<AutomationState> state =
-      ValueNotifier<AutomationState>(AutomationState.idle);
-  final ValueNotifier<String> task = ValueNotifier<String>('Ready');
+  final ValueNotifier<AutomationState> state = ValueNotifier<AutomationState>(
+    AutomationState.idle,
+  );
+  final ValueNotifier<String> task = ValueNotifier<String>('Sẵn sàng');
 
   Future<void> openLoginTest() async {
-    _transition(AutomationState.openingLoginPage, 'Opening login page');
+    _transition(AutomationState.openingLoginPage, 'Đang mở trang đăng nhập');
     await webView.openLoginTest();
-    _transition(AutomationState.waitingLogin, 'Waiting for manual login');
+    _transition(AutomationState.waitingLogin, 'Chờ bạn đăng nhập thủ công');
   }
 
   Future<void> fillCredentials({
@@ -35,12 +40,12 @@ class AutomationController {
     required String password,
   }) async {
     if (username.trim().isEmpty || password.isEmpty) {
-      _transition(AutomationState.failed, 'Username/password is required');
+      _transition(AutomationState.failed, 'Cần nhập tên truy cập và mật khẩu');
       return;
     }
 
     try {
-      _transition(AutomationState.fillingCredentials, 'Filling credentials');
+      _transition(AutomationState.fillingCredentials, 'Đang tự điền tài khoản');
       await loginAdapter.fillCredentials(
         webView.controller,
         username: username.trim(),
@@ -51,11 +56,11 @@ class AutomationController {
         await _setKeepAwake(true);
         _transition(
           AutomationState.captchaRequired,
-          'CAPTCHA required; user must verify manually in this WebView',
+          'Cần xác minh CAPTCHA thủ công trong trình duyệt này',
         );
         return;
       }
-      _transition(AutomationState.waitingLogin, 'Credentials filled');
+      _transition(AutomationState.waitingLogin, 'Đã điền tài khoản');
     } catch (error) {
       _transition(AutomationState.failed, error.toString());
     }
@@ -63,7 +68,7 @@ class AutomationController {
 
   Future<void> checkLoginStatus() async {
     try {
-      _transition(AutomationState.checkingSession, 'Checking login status');
+      _transition(AutomationState.checkingSession, 'Đang kiểm tra đăng nhập');
       final status = await loginAdapter.probeStatus(webView.controller);
       if (status.loggedIn) {
         final now = DateTime.now();
@@ -71,9 +76,12 @@ class AutomationController {
         await _setKeepAwake(false);
         _transition(
           AutomationState.loginSuccess,
-          'Login confirmed at ${_time(now)}',
+          'Đã xác nhận đăng nhập lúc ${_time(now)}',
         );
-        webView.addLog(LogLevel.info, 'Logged in as current WebView user.');
+        webView.addLog(
+          LogLevel.info,
+          'Đã đăng nhập trong phiên trình duyệt hiện tại.',
+        );
         return;
       }
       if (status.loginErrorText.isNotEmpty) {
@@ -87,11 +95,45 @@ class AutomationController {
         await _setKeepAwake(true);
         _transition(
           AutomationState.captchaRequired,
-          'CAPTCHA still required',
+          'Vẫn cần xác minh CAPTCHA',
         );
         return;
       }
-      _transition(AutomationState.waitingLogin, 'Login not confirmed yet');
+      _transition(AutomationState.waitingLogin, 'Chưa xác nhận được đăng nhập');
+    } catch (error) {
+      _transition(AutomationState.failed, error.toString());
+    }
+  }
+
+  Future<void> registerCourse({required String classCode}) async {
+    final target = classCode.trim();
+    if (target.isEmpty) {
+      _transition(AutomationState.failed, 'Cần nhập mã lớp môn học');
+      return;
+    }
+
+    try {
+      _transition(AutomationState.registeringCourse, 'Đang tìm lớp $target');
+      final result = await registrationAdapter.registerCourse(
+        webView.controller,
+        classCode: target,
+      );
+      webView.addLog(LogLevel.info, Sanitizer.sanitizeText(result.rowText));
+      switch (result.status) {
+        case VnuRegistrationStatus.clicked:
+          _transition(
+            AutomationState.courseRegistered,
+            Sanitizer.sanitizeText(result.message),
+          );
+        case VnuRegistrationStatus.notFound:
+        case VnuRegistrationStatus.ambiguous:
+        case VnuRegistrationStatus.actionNotFound:
+        case VnuRegistrationStatus.wrongPage:
+          _transition(
+            AutomationState.failed,
+            Sanitizer.sanitizeText(result.message),
+          );
+      }
     } catch (error) {
       _transition(AutomationState.failed, error.toString());
     }
@@ -100,7 +142,7 @@ class AutomationController {
   Future<void> stop() async {
     sessionService.clear();
     await _setKeepAwake(false);
-    _transition(AutomationState.stopped, 'Stopped');
+    _transition(AutomationState.stopped, 'Đã dừng');
   }
 
   void dispose() {
@@ -120,10 +162,10 @@ class AutomationController {
       await WakelockPlus.toggle(enable: enabled);
       webView.addLog(
         LogLevel.debug,
-        "Keep screen awake ${enabled ? 'enabled' : 'disabled'}.",
+        'Giữ màn hình sáng: ${enabled ? 'bật' : 'tắt'}.',
       );
     } catch (error) {
-      webView.addLog(LogLevel.warning, 'Could not update wakelock: $error');
+      webView.addLog(LogLevel.warning, 'Không thể cập nhật wakelock: $error');
     }
   }
 

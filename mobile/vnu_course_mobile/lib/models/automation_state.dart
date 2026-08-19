@@ -6,6 +6,8 @@ enum AutomationState {
   waitingLogin,
   loginSuccess,
   checkingSession,
+  registeringCourse,
+  courseRegistered,
   sessionExpired,
   failed,
   stopped,
@@ -15,25 +17,29 @@ extension AutomationStateLabel on AutomationState {
   String get label {
     switch (this) {
       case AutomationState.idle:
-        return 'IDLE';
+        return 'CHỜ';
       case AutomationState.openingLoginPage:
-        return 'OPENING_LOGIN_PAGE';
+        return 'MỞ ĐĂNG NHẬP';
       case AutomationState.fillingCredentials:
-        return 'FILLING_CREDENTIALS';
+        return 'TỰ ĐIỀN';
       case AutomationState.captchaRequired:
-        return 'CAPTCHA_REQUIRED';
+        return 'CẦN CAPTCHA';
       case AutomationState.waitingLogin:
-        return 'WAITING_LOGIN';
+        return 'CHỜ ĐĂNG NHẬP';
       case AutomationState.loginSuccess:
-        return 'LOGIN_SUCCESS';
+        return 'ĐÃ ĐĂNG NHẬP';
       case AutomationState.checkingSession:
-        return 'CHECKING_SESSION';
+        return 'KIỂM TRA PHIÊN';
+      case AutomationState.registeringCourse:
+        return 'ĐĂNG KÝ MÔN';
+      case AutomationState.courseRegistered:
+        return 'ĐÃ BẤM ĐĂNG';
       case AutomationState.sessionExpired:
-        return 'SESSION_EXPIRED';
+        return 'HẾT PHIÊN';
       case AutomationState.failed:
-        return 'FAILED';
+        return 'LỖI';
       case AutomationState.stopped:
-        return 'STOPPED';
+        return 'ĐÃ DỪNG';
     }
   }
 }
